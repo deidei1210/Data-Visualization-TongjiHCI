@@ -1,9 +1,13 @@
 import dash
+import wordcloud
 from dash.dependencies import Input, Output
 import dash_core_components as dcc
 import dash_html_components as html
 import plotly.graph_objs as go
 import pandas as pd
+import base64
+from io import BytesIO
+
 
 #创建Dash应用程序对象
 app = dash.Dash()
@@ -129,6 +133,25 @@ app.layout = html.Div([
             'padding': '10px 5px'
         }
     ),
+    #条形图
+    html.Div([
+        dcc.Dropdown(
+            id='category-dropdown',
+            options=[{'label': cat, 'value': cat} for cat in name],
+            value=name[0]
+        ),
+         dcc.Graph(id='category-rating-bar')
+        ],
+        style={'display': 'inline-block', 
+               'width': '49%',
+               'backgroundColor': 'rgb(30, 31, 41)'}
+    ),
+
+    # 添加一个图像组件
+    html.Img(id='wordcloud-image', src='',style={'display': 'inline-block', 
+                                                'width': '49%',
+                                                'backgroundColor': 'rgb(30, 31, 41)'}),
+
     #随着饼图变化的气泡图和散点图
     html.Div(
         [dcc.Graph(id='graph1'),
@@ -148,24 +171,7 @@ app.layout = html.Div([
                'width': '49%',
                'backgroundColor': 'rgb(30, 31, 41)'}
     ),
-    #条形图
-    html.Div([
-        dcc.Dropdown(
-            id='category-dropdown',
-            options=[{'label': cat, 'value': cat} for cat in name],
-            value=name[0]
-        ),
-        # dcc.Graph(
-        #     id='Graph',
-        #     figure=barFig,
-        # )
-         dcc.Graph(id='category-rating-bar')
-        ],
-        style={'width': '100%', 
-               'display': 'inline-block', 
-               'padding': '0 20',
-               'backgroundColor': 'rgb(30, 31, 41)'}
-    ),
+
     
 ],
     style={'backgroundColor': 'rgb(30, 31, 41)'}
@@ -299,7 +305,28 @@ def update_bar_chart(category):
                        yaxis={'title': 'Count'},
                        plot_bgcolor= 'rgb(30, 31, 41)',
                        paper_bgcolor= 'rgb(30, 31, 41)',
-                       font= {'color': 'white'},)
+                       font= {'color': 'white'})
     return {'data': data, 'layout': layout}
+# 定义生成词云的回调函数
+@app.callback(
+    Output('wordcloud-image', 'src'),
+    [Input('category-dropdown', 'value')]
+)
+def generate_wordcloud(category):
+    # 根据用户选择的 Category 筛选出对应的 App 名称和对应的 Reviews 数量
+    data = df[df['Category'] == category][['App', 'Reviews']]
+    # 将单词出现频率转换为浮点型
+    data = data.astype({'Reviews': 'float'})
+    # 将 App 名称和 Reviews 数量转换为字典形式
+    words = dict(zip(data['App'], data['Reviews']))
+    # 生成词云图
+    wc = wordcloud.WordCloud(width=800, height=400, background_color='black', colormap='Accent').generate_from_frequencies(words)
+    # 将词云图转换为 Base64 编码的图片
+    img = wc.to_image()
+    buffered = BytesIO()
+    img.save(buffered, format="JPEG")
+    img_str = base64.b64encode(buffered.getvalue()).decode('utf-8')
+    return f"data:image/jpeg;base64,{img_str}"
+
 if __name__ == '__main__':
     app.run_server(port=8080)#如果不指明运行的端口，则Dash应用程序默认会运行在本地主机（localhost）的8050端口上
