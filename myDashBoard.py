@@ -123,7 +123,7 @@ app.layout = html.Div([
                 'margin-left': '45%'})
     ],
         style={
-            'borderBottom': 'thin lightgrey solid',
+            'borderBottom': 'thin rgb(134,217,236) solid',
             'backgroundColor': 'rgb(30, 31, 41)',
             'padding': '10px 5px'
         }
@@ -226,7 +226,10 @@ def updateGraph1(type,hoverData):
                 'title': 'Rating',
                 'showgrid': True
             },
-            'hovermode': 'closest'
+            'hovermode': 'closest',
+            'plot_bgcolor': 'rgb(30, 31, 41)',
+            'paper_bgcolor': 'rgb(30, 31, 41)',
+            'font': {'color': 'white'},
         }
     }
 
@@ -246,8 +249,8 @@ def updateGraph2(hoverData, type):
             marker={
                 'size': 10,
                 'opacity': 0.5,
-                'color': '#ffa15a',
-                'line': {'width': 0.5, 'color': 'white'}
+                'color': 'rgb(236,108,183)',
+                'line': {'width': 1, 'color': 'white'}
             }
         )],
         'layout': {
@@ -268,7 +271,11 @@ def updateGraph2(hoverData, type):
                 'title': 'Rating',
                 'showgrid': True
             },
-            'hovermode': 'closest'
+            'hovermode': 'closest',
+            'plot_bgcolor': 'rgb(30, 31, 41)',
+            'paper_bgcolor': 'rgb(30, 31, 41)',
+            'font': {'color': 'white'},
+            
         }
     }
 
