@@ -5,8 +5,9 @@ import dash_html_components as html
 import plotly.graph_objs as go
 import pandas as pd
 
+#创建Dash应用程序对象
 app = dash.Dash()
-# 读文件
+# 读取数据并清洗
 df = pd.read_csv('googleplaystore.csv')
 df = df.dropna(axis=0, how="any")
 
@@ -56,7 +57,7 @@ categoryInstallPie = go.Figure(data=go.Pie(
 
 )
 
-# calculate the count of each rating's apps
+# 计算每个rating的App有多少
 rateCount = df.Rating.value_counts()
 maxCount = max(rateCount)
 rateCount = {'Rating': rateCount.index, 'Count': rateCount.values}
@@ -148,11 +149,18 @@ app.layout = html.Div([
                'backgroundColor': 'rgb(30, 31, 41)'}
     ),
     #条形图
-    html.Div(
-        dcc.Graph(
-            id='Graph',
-            figure=barFig,
+    html.Div([
+        dcc.Dropdown(
+            id='category-dropdown',
+            options=[{'label': cat, 'value': cat} for cat in name],
+            value=name[0]
         ),
+        # dcc.Graph(
+        #     id='Graph',
+        #     figure=barFig,
+        # )
+         dcc.Graph(id='category-rating-bar')
+        ],
         style={'width': '100%', 
                'display': 'inline-block', 
                'padding': '0 20',
@@ -163,7 +171,7 @@ app.layout = html.Div([
     style={'backgroundColor': 'rgb(30, 31, 41)'}
 )
 
-# change the installs-rating scatter graph when hover on one category of the Pie graph
+#气泡图的回调函数
 @app.callback(
     Output('graph1', 'figure'),
     [
@@ -233,7 +241,7 @@ def updateGraph1(type,hoverData):
         }
     }
 
-# change the reviews-rating scatter graph when hover on one category of the Pie graph
+#散点图的回调函数
 @app.callback(Output('graph2', 'figure'),
               [Input('circleGraph', 'hoverData'),
                 Input('type','value')])
@@ -279,6 +287,19 @@ def updateGraph2(hoverData, type):
         }
     }
 
-
+#定义柱状图的回调函数
+@app.callback(Output('category-rating-bar', 'figure'),
+              [Input('category-dropdown', 'value')])
+def update_bar_chart(category):
+    filtered_df = df[df['Category']==category]
+    grouped_df = filtered_df.groupby(['Rating']).size().reset_index(name='count')
+    data = [go.Bar(x=grouped_df['Rating'], y=grouped_df['count'])]
+    layout = go.Layout(title=f'App ratings in {category} category',
+                       xaxis={'title': 'Rating'},
+                       yaxis={'title': 'Count'},
+                       plot_bgcolor= 'rgb(30, 31, 41)',
+                       paper_bgcolor= 'rgb(30, 31, 41)',
+                       font= {'color': 'white'},)
+    return {'data': data, 'layout': layout}
 if __name__ == '__main__':
     app.run_server(port=8080)#如果不指明运行的端口，则Dash应用程序默认会运行在本地主机（localhost）的8050端口上
