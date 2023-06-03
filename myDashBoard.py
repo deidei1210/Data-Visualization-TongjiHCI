@@ -76,37 +76,6 @@ def get_color(temp):
         b=int((1-temp/maxCount)*200)
     )
 
-# draw the category-count Bar graph
-barFig = go.Figure(
-    data=go.Bar(
-        x=dfRateCount.Rating,
-        y=dfRateCount['Count'].astype(int),
-        customdata=dfRateCount.Count,
-        marker={
-            'color': [get_color(count) for count in dfRateCount['Count'].astype(int)]
-        }
-    ),
-    layout=go.Layout(
-        yaxis={
-            'title': 'Count of App',
-            'titlefont': {'color': 'white'}, # 设置y轴标题的文本颜色为白色
-            'tickfont': {'color': 'white'} # 设置y轴刻度标签的文本颜色为白色
-        },
-        xaxis={
-            'title': 'Rating',
-            'titlefont': {'color': 'white'}, # 设置y轴标题的文本颜色为白色
-            'tickfont': {'color': 'white'} # 设置y轴刻度标签的文本颜色为白色
-        },
-        title={
-            'text': 'Each Rating\'s App Count',
-            'font': {'color': 'white'}
-        }, # 设置标题文本颜色为白色        
-        plot_bgcolor='rgb(30, 31, 41)', # 更新整个图表的背景颜色
-        paper_bgcolor='rgb(30, 31, 41)' # 更新绘图区域的背景颜色
-
-    )
-)
-
 # 实现页面的布局
 app.layout = html.Div([
     #顶部的单选按钮
@@ -133,25 +102,31 @@ app.layout = html.Div([
             'padding': '10px 5px'
         }
     ),
-    #条形图
-    html.Div([
+    html.Div([       
+        html.H3('App Category',style={'color':'white','margin-left':'40px'}),
         dcc.Dropdown(
             id='category-dropdown',
             options=[{'label': cat, 'value': cat} for cat in name],
-            value=name[0]
+            value=name[0],
+            style={'margin-top':'10px','margin-left':'20px','width':'49%'},
         ),
-         dcc.Graph(id='category-rating-bar')
-        ],
+    ]),
+    #柱状图
+    html.Div(
+        dcc.Graph(id='category-rating-bar'),
         style={'display': 'inline-block', 
                'width': '49%',
                'backgroundColor': 'rgb(30, 31, 41)'}
     ),
-
-    # 添加一个图像组件
-    html.Img(id='wordcloud-image', src='',style={'display': 'inline-block', 
-                                                'width': '49%',
-                                                'backgroundColor': 'rgb(30, 31, 41)'}),
-
+    html.Div([
+        html.P('Wordcloud of APPs in this Category', style={'textAlign': 'center','color':'white','z-index':2}),
+        # 添加一个图像组件
+        html.Img(id='wordcloud-image', src='',style={'backgroundColor': 'rgb(30, 31, 41)'}),
+    
+    ],style={'display': 'inline-block', 
+               'width': '49%',
+               'backgroundColor': 'rgb(30, 31, 41)'}
+    ),
     #随着饼图变化的气泡图和散点图
     html.Div(
         [dcc.Graph(id='graph1'),
@@ -299,7 +274,9 @@ def updateGraph2(hoverData, type):
 def update_bar_chart(category):
     filtered_df = df[df['Category']==category]
     grouped_df = filtered_df.groupby(['Rating']).size().reset_index(name='count')
-    data = [go.Bar(x=grouped_df['Rating'], y=grouped_df['count'])]
+    data = [go.Bar(x=grouped_df['Rating'],
+                   y=grouped_df['count'],
+                   marker={'color': grouped_df['count'], 'colorscale': 'Viridis', 'cmin': 0, 'cmax': max(grouped_df['count'])})]
     layout = go.Layout(title=f'App ratings in {category} category',
                        xaxis={'title': 'Rating'},
                        yaxis={'title': 'Count'},
