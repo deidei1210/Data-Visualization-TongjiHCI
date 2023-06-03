@@ -1,5 +1,6 @@
 import dash
 import wordcloud
+import matplotlib.pyplot as plt
 from dash.dependencies import Input, Output
 import dash_core_components as dcc
 import dash_html_components as html
@@ -97,7 +98,7 @@ app.layout = html.Div([
                 'margin-left': '45%'})
     ],
         style={
-            'borderBottom': 'thin rgb(134,217,236) solid',
+            'borderBottom': 'thin rgb(173,139,222) solid',
             'backgroundColor': 'rgb(30, 31, 41)',
             'padding': '10px 5px'
         }
@@ -276,7 +277,7 @@ def update_bar_chart(category):
     grouped_df = filtered_df.groupby(['Rating']).size().reset_index(name='count')
     data = [go.Bar(x=grouped_df['Rating'],
                    y=grouped_df['count'],
-                   marker={'color': grouped_df['count'], 'colorscale': 'Viridis', 'cmin': 0, 'cmax': max(grouped_df['count'])})]
+                   marker={'color': grouped_df['count'], 'colorscale': 'Sunset', 'cmin': 0, 'cmax': max(grouped_df['count'])})]
     layout = go.Layout(title=f'App ratings in {category} category',
                        xaxis={'title': 'Rating'},
                        yaxis={'title': 'Count'},
@@ -296,8 +297,9 @@ def generate_wordcloud(category):
     data = data.astype({'Reviews': 'float'})
     # 将 App 名称和 Reviews 数量转换为字典形式
     words = dict(zip(data['App'], data['Reviews']))
+
     # 生成词云图
-    wc = wordcloud.WordCloud(width=800, height=400, background_color='black', colormap='Accent').generate_from_frequencies(words)
+    wc = wordcloud.WordCloud(width=800, height=400, background_color='black', colormap='plasma').generate_from_frequencies(words)
     # 将词云图转换为 Base64 编码的图片
     img = wc.to_image()
     buffered = BytesIO()
